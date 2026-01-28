@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmonica Tab Generator</title>
+    
+    <!-- React and ReactDOM from CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel Standalone for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+                sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .title {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 1rem;
+        }
+
+        .textarea {
+            width: 100%;
+            min-height: 250px;
+            padding: 1rem;
+            border: 2px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        .textarea:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .button {
+            flex: 1;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .button-primary {
+            background-color: #6366f1;
+            color: white;
+        }
+
+        .button-primary:hover {
+            background-color: #4f46e5;
+        }
+
+        .button-secondary {
+            background-color: #9333ea;
+            color: white;
+        }
+
+        .button-secondary:hover {
+            background-color: #7e22ce;
+        }
+
+        .preview-container {
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            background-color: #f9fafb;
+            padding: 1rem;
+            overflow: auto;
+            max-height: 600px;
+        }
+
+        .tip {
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .instructions {
+            list-style: none;
+        }
+
+        .instruction-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+            color: #4b5563;
+        }
+
+        .instruction-number {
+            color: #6366f1;
+            font-weight: 700;
+            margin-right: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .title {
+                font-size: 1.75rem;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useRef } = React;
+
+        const HarmonicaTabGenerator = () => {
+            const [input, setInput] = useState(` 4 6 -5 5 -4 4 3
+ 6 7 -6 6 -6 6 5
+ 4 4 4 5 5 5 5 5 -5 5 4`);
+            const svgRef = useRef(null);
+
+            // Parse input and add + signs to positive numbers
+            const parseInput = (text) => {
+                const lines = text.split('\n');
+                return lines.map(line => {
+                    // Check if line contains tab notation (numbers with optional minus signs and spaces)
+                    const isTabLine = /^[\s\d\-]+$/.test(line.trim()) && line.trim().length > 0;
+                    
+                    let processedContent = line;
+                    
+                    // If it's a tab line, add + signs to positive numbers
+                    if (isTabLine) {
+                        processedContent = line.replace(/(\s|^)(\d+)/g, (match, space, number) => {
+                            return space + '+' + number;
+                        });
+                    }
+                    
+                    return {
+                        content: processedContent,
+                        isTab: isTabLine
+                    };
+                });
+            };
+
+            // Calculate layout (columns based on max 10 lines per column)
+            const calculateLayout = (parsedLines) => {
+                const tabLines = parsedLines.filter(l => l.isTab);
+                const maxLinesPerColumn = 10;
+                const numColumns = Math.ceil(tabLines.length / maxLinesPerColumn);
+                
+                const columns = [];
+                let currentIndex = 0;
+                
+                for (let col = 0; col < numColumns; col++) {
+                    const columnLines = [];
+                    let tabCount = 0;
+                    
+                    while (currentIndex < parsedLines.length && tabCount < maxLinesPerColumn) {
+                        const line = parsedLines[currentIndex];
+                        columnLines.push(line);
+                        
+                        if (line.isTab) {
+                            tabCount++;
+                        }
+                        currentIndex++;
+                    }
+                    
+                    columns.push(columnLines);
+                }
+                
+                return columns;
+            };
+
+            const parsedLines = parseInput(input);
+            const columns = calculateLayout(parsedLines);
+
+            // SVG dimensions and styling
+            const lineHeight = 40;
+            const fontSize = 28;
+            const annotationFontSize = 12;
+            const columnWidth = 400;
+            const padding = 40;
+            const columnGap = 60;
+            
+            const maxLinesInAnyColumn = Math.max(...columns.map(col => {
+                return col.reduce((sum, line) => {
+                    return sum + (line.isTab ? 1 : 0.5);
+                }, 0);
+            }), 1);
+            
+            const svgWidth = columns.length * columnWidth + (columns.length - 1) * columnGap + padding * 2;
+            const svgHeight = maxLinesInAnyColumn * lineHeight + padding * 2;
+
+            // Export as PNG
+            const exportAsPNG = () => {
+                const svgElement = svgRef.current;
+                const svgData = new XMLSerializer().serializeToString(svgElement);
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Set canvas size (2x for better quality)
+                canvas.width = svgWidth * 2;
+                canvas.height = svgHeight * 2;
+                
+                const img = new Image();
+                const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+                const url = URL.createObjectURL(svgBlob);
+                
+                img.onload = () => {
+                    ctx.scale(2, 2);
+                    ctx.drawImage(img, 0, 0);
+                    URL.revokeObjectURL(url);
+                    
+                    canvas.toBlob((blob) => {
+                        const link = document.createElement('a');
+                        link.download = 'harmonica-tabs.png';
+                        link.href = URL.createObjectURL(blob);
+                        link.click();
+                    });
+                };
+                
+                img.src = url;
+            };
+
+            // Export as SVG
+            const exportAsSVG = () => {
+                const svgElement = svgRef.current;
+                const svgData = new XMLSerializer().serializeToString(svgElement);
+                const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+                const link = document.createElement('a');
+                link.download = 'harmonica-tabs.svg';
+                link.href = URL.createObjectURL(blob);
+                link.click();
+            };
+
+            return (
+                <div className="gradient-bg">
+                    <div className="container">
+                        <h1 className="title">Harmonica Tab Generator</h1>
+                        <p className="subtitle">Create beautiful, readable images of your harmonica tabs</p>
+                        
+                        {/* Input Section */}
+                        <div className="card">
+                            <h2 className="section-title">Input Your Tabs</h2>
+                            <textarea
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                className="textarea"
+                                placeholder="Enter your harmonica tabs here...
+
+Example:
+ 4 6 -5 5 -4 4 3
+ 6 7 -6 6 -6 6 5"
+                            />
+                            <div className="button-group">
+                                <button
+                                    onClick={exportAsPNG}
+                                    className="button button-primary"
+                                >
+                                    📥 Download PNG
+                                </button>
+                                <button
+                                    onClick={exportAsSVG}
+                                    className="button button-secondary"
+                                >
+                                    📥 Download SVG
+                                </button>
+                            </div>
+                            <p className="tip">
+                                💡 Tip: Positive numbers will automatically get a + sign. Add text for annotations - they'll appear smaller.
+                            </p>
+                        </div>
+
+                        {/* Preview Section */}
+                        <div className="card">
+                            <h2 className="section-title">Preview</h2>
+                            <div className="preview-container">
+                                <svg
+                                    ref={svgRef}
+                                    width={svgWidth}
+                                    height={svgHeight}
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    style={{ background: '#ffffff', display: 'block' }}
+                                >
+                                    {/* Background */}
+                                    <rect width={svgWidth} height={svgHeight} fill="#ffffff" />
+                                    
+                                    {/* Render columns */}
+                                    {columns.map((column, colIndex) => {
+                                        let yOffset = padding;
+                                        const xOffset = padding + colIndex * (columnWidth + columnGap);
+                                        
+                                        return (
+                                            <g key={colIndex}>
+                                                {column.map((line, lineIndex) => {
+                                                    const currentY = yOffset;
+                                                    
+                                                    if (line.isTab) {
+                                                        // Render tab line with monospace font
+                                                        yOffset += lineHeight;
+                                                        return (
+                                                            <text
+                                                                key={lineIndex}
+                                                                x={xOffset}
+                                                                y={currentY}
+                                                                fontFamily="'Courier New', monospace"
+                                                                fontSize={fontSize}
+                                                                fontWeight="600"
+                                                                fill="#1f2937"
+                                                                letterSpacing="2"
+                                                            >
+                                                                {line.content}
+                                                            </text>
+                                                        );
+                                                    } else if (line.content.trim()) {
+                                                        // Render annotation with smaller font
+                                                        yOffset += lineHeight * 0.6;
+                                                        return (
+                                                            <text
+                                                                key={lineIndex}
+                                                                x={xOffset}
+                                                                y={currentY}
+                                                                fontFamily="Arial, sans-serif"
+                                                                fontSize={annotationFontSize}
+                                                                fontStyle="italic"
+                                                                fill="#6b7280"
+                                                            >
+                                                                {line.content}
+                                                            </text>
+                                                        );
+                                                    }
+                                                    return null;
+                                                })}
+                                            </g>
+                                        );
+                                    })}
+                                </svg>
+                            </div>
+                        </div>
+
+                        {/* Instructions */}
+                        <div className="card">
+                            <h2 className="section-title">How to Use</h2>
+                            <ul className="instructions">
+                                <li className="instruction-item">
+                                    <span className="instruction-number">1.</span>
+                                    <span>Enter your harmonica tabs in the input field (numbers with spaces)</span>
+                                </li>
+                                <li className="instruction-item">
+                                    <span className="instruction-number">2.</span>
+                                    <span>Positive numbers automatically get a + sign, negative numbers keep the - sign</span>
+                                </li>
+                                <li className="instruction-item">
+                                    <span className="instruction-number">3.</span>
+                                    <span>Add text annotations if needed - they'll appear smaller and italicized</span>
+                                </li>
+                                <li className="instruction-item">
+                                    <span className="instruction-number">4.</span>
+                                    <span>Preview updates automatically - tabs are split into columns (max 10 lines per column)</span>
+                                </li>
+                                <li className="instruction-item">
+                                    <span className="instruction-number">5.</span>
+                                    <span>Download as PNG for sharing or SVG for editing</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<HarmonicaTabGenerator />);
+    </script>
+</body>
+</html>
