@@ -142,7 +142,7 @@ const HarmonicaTabGenerator = () => {
   return (
     <div className="gradient-bg">
       <div className="container">
-        <h1 className="title">Harmonica Tab Generator</h1>
+        <h1 className="title">Harmonica Tabs Image Generator</h1>
         <p className="subtitle">
           Create beautiful, readable images of your harmonica tabs
         </p>
