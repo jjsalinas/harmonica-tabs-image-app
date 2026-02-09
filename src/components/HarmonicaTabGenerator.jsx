@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import "../App.css";
 
 const DEMO_TABS = `
   4 6 -5 5 -4 4 3
@@ -16,16 +17,16 @@ const HarmonicaTabGenerator = () => {
   const parseInput = (text) => {
     const lines = text.split("\n");
     return lines.map((line) => {
-      // Check if line contains tab notation (numbers with optional minus signs, quotes for bends, and spaces)
+      // Check if line contains tab notation (numbers with optional minus signs, quotes/backticks for bends, and spaces)
       const isTabLine =
-        /^[\s\d-'"]+$/.test(line.trim()) && line.trim().length > 0;
+        /^[\s\d\-'"`'']+$/.test(line.trim()) && line.trim().length > 0;
 
       let processedContent = line;
 
       // If it's a tab line, add + signs to positive numbers (but preserve bend notation)
       if (isTabLine) {
         processedContent = line.replace(
-          /(\s|^)(\d+)(['"]?)/g,
+          /(\s|^)(\d+)(['"`'']?)/g,
           (match, space, number, bend) => {
             return space + "+" + number + bend;
           },
@@ -73,15 +74,32 @@ const HarmonicaTabGenerator = () => {
   const parsedLines = parseInput(input);
   const columns = calculateLayout(parsedLines);
 
+  // Calculate the width of each column based on content
+  const calculateColumnWidth = (column) => {
+    let maxLength = 0;
+    column.forEach((line) => {
+      if (line.content.trim()) {
+        // Adjusted for letterSpacing of 0.5 instead of 2
+        // Monospace at 28px is about 16.8px per char + 0.5px spacing
+        const charWidth = line.isTab ? 17.3 : 7;
+        const length = line.content.length * charWidth;
+        maxLength = Math.max(maxLength, length);
+      }
+    });
+    return Math.max(maxLength, 200); // Minimum 200px per column
+  };
+
+  const columnWidths = columns.map(calculateColumnWidth);
+  const totalContentWidth = columnWidths.reduce((sum, width) => sum + width, 0);
+
   // SVG dimensions and styling
   const lineHeight = 40;
   const fontSize = 28;
   const annotationFontSize = 12;
   const titleFontSize = 36;
   const titleHeight = 80;
-  const columnWidth = 400;
   const padding = 40;
-  const columnGap = 60;
+  const columnGap = 80;
 
   const maxLinesInAnyColumn = Math.max(
     ...columns.map((col) => {
@@ -93,9 +111,7 @@ const HarmonicaTabGenerator = () => {
   );
 
   const svgWidth =
-    columns.length * columnWidth +
-    (columns.length - 1) * columnGap +
-    padding * 2;
+    totalContentWidth + (columns.length - 1) * columnGap + padding * 2;
   const svgHeight =
     maxLinesInAnyColumn * lineHeight + padding * 2 + titleHeight;
 
@@ -166,7 +182,7 @@ const HarmonicaTabGenerator = () => {
               <span className="instruction-number">2</span>
               <div className="instruction-content">
                 <strong>Auto-formatting</strong> - Positive numbers get a + sign
-                automatically. Use ' or " for bends (e.g., -3', 4")
+                automatically. Bends: ' " ` ' (e.g., -3', 4")
               </div>
             </li>
             <li className="instruction-item">
@@ -247,7 +263,8 @@ const HarmonicaTabGenerator = () => {
 Example:
 4 6 -5 5 -4 4 3
 -3' 6 7 -6' 6 5
-Use ' or &quot; for bends"
+
+Add quotes after numbers for bends"
             rows={12}
           />
           <div className="button-group">
@@ -261,7 +278,7 @@ Use ' or &quot; for bends"
           <p className="tip">
             💡 <strong>Pro tip:</strong> Mix tab lines with text for
             annotations. Tab lines contain only numbers, spaces, and bend
-            markers (' or ").
+            markers (' " ` ').
           </p>
         </div>
 
@@ -298,7 +315,11 @@ Use ' or &quot; for bends"
               {/* Render columns */}
               {columns.map((column, colIndex) => {
                 let yOffset = padding + titleHeight;
-                const xOffset = padding + colIndex * (columnWidth + columnGap);
+                // Calculate xOffset based on cumulative widths of previous columns
+                let xOffset = padding;
+                for (let i = 0; i < colIndex; i++) {
+                  xOffset += columnWidths[i] + columnGap;
+                }
 
                 return (
                   <g key={colIndex}>
@@ -317,7 +338,7 @@ Use ' or &quot; for bends"
                             fontSize={fontSize}
                             fontWeight="600"
                             fill="#3d5a6c"
-                            letterSpacing="2"
+                            letterSpacing="0.5"
                           >
                             {line.content}
                           </text>
@@ -345,6 +366,14 @@ Use ' or &quot; for bends"
                 );
               })}
             </svg>
+          </div>
+          <div className="button-group">
+            <button onClick={exportAsPNG} className="button button-primary">
+              📥 Download PNG
+            </button>
+            <button onClick={exportAsSVG} className="button button-secondary">
+              📥 Download SVG
+            </button>
           </div>
         </div>
       </div>
