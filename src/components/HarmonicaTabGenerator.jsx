@@ -33,11 +33,15 @@ const SVG_CONFIG = {
 /**
  * Parse input text and identify tab lines vs annotation lines
  * Adds + signs to positive numbers in tab lines
+ * Preserves empty lines for spacing
  */
 const parseInput = (text) => {
   const lines = text.split("\n");
 
   return lines.map((line) => {
+    // Check if line is empty
+    const isEmpty = line.trim().length === 0;
+
     // Tab lines contain only numbers, spaces, minus signs, and bend markers
     const isTabLine =
       /^[\s\d\-'"`'']+$/.test(line.trim()) && line.trim().length > 0;
@@ -55,12 +59,14 @@ const parseInput = (text) => {
     return {
       content: processedContent,
       isTab: isTabLine,
+      isEmpty: isEmpty,
     };
   });
 };
 
 /**
  * Calculate column layout based on max lines per column
+ * Preserves empty lines for spacing
  */
 const calculateLayout = (parsedLines, maxLinesPerColumn) => {
   const tabLines = parsedLines.filter((l) => l.isTab);
@@ -116,7 +122,10 @@ const calculateSVGDimensions = (columns, columnWidths) => {
 
   const maxLinesInAnyColumn = Math.max(
     ...columns.map((col) => {
-      return col.reduce((sum, line) => sum + (line.isTab ? 1 : 0.5), 0);
+      return col.reduce((sum, line) => {
+        if (line.isEmpty) return sum + 0.5; // Empty lines take less space
+        return sum + (line.isTab ? 1 : 0.5);
+      }, 0);
     }),
     1,
   );
@@ -334,7 +343,7 @@ const SettingsSection = ({
           <input
             type="range"
             min="5"
-            max="20"
+            max="35"
             value={maxLinesPerColumn}
             onChange={(e) => setMaxLinesPerColumn(parseInt(e.target.value))}
             className="slider"
@@ -435,7 +444,11 @@ const PreviewSection = ({
               {column.map((line, lineIndex) => {
                 const currentY = yOffset;
 
-                if (line.isTab) {
+                if (line.isEmpty) {
+                  // Empty line - just add spacing
+                  yOffset += SVG_CONFIG.lineHeight * 0.5;
+                  return null;
+                } else if (line.isTab) {
                   // Tab line - monospace, larger font
                   yOffset += SVG_CONFIG.lineHeight;
                   return (
