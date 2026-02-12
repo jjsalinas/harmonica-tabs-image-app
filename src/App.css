@@ -394,12 +394,6 @@ body {
   min-height: min-content;
 }
 
-.preview-inner {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: flex-start;
-}
-
 .preview-container svg {
   border-radius: 12px;
   box-shadow:
