@@ -5,7 +5,7 @@ A beautiful React application for generating clean, readable images of harmonica
 ## Features
 
 - ✨ Auto-formatting: Positive numbers automatically get a + sign
-- 📊 Smart layout: Automatically splits long tabs into columns (max 10 lines per column)
+- 📊 Smart layout: Automatically splits long tabs into columns (max 35 lines per column)
 - 📝 Text annotations: Add notes that appear smaller alongside your tabs
 - 🎨 High contrast: Professional typography for excellent readability
 - 📥 Multiple formats: Export as PNG (high-res) or SVG (vector)
@@ -47,8 +47,8 @@ The app will open in your browser at `http://localhost:5173`
 
 ```
  4 6 -5 5 -4 4 3
- 6 7 -6 6 -6 6 5
- 4 4 4 5 5 5 5 5 -5 5 4
+ 6 7 -6 6' -6 6 5
+ 4 4 4 5 5 5 5' 5 -5 5 4
 ```
 
 ## License
