@@ -32,7 +32,7 @@ const SVG_CONFIG = {
 
 /**
  * Parse input text and identify tab lines vs annotation lines
- * Adds + signs to positive numbers in tab lines
+ * Adds + signs to positive numbers in tab lines (if not already present)
  * Preserves empty lines for spacing
  */
 const parseInput = (text) => {
@@ -42,13 +42,13 @@ const parseInput = (text) => {
     // Check if line is empty
     const isEmpty = line.trim().length === 0;
 
-    // Tab lines contain only numbers, spaces, minus signs, and bend markers
+    // Tab lines contain only numbers, spaces, +/- signs, and bend markers
     const isTabLine =
-      /^[\s\d\-'"`'']+$/.test(line.trim()) && line.trim().length > 0;
+      /^[\s\d\+\-'"`'']+$/.test(line.trim()) && line.trim().length > 0;
 
     let processedContent = line;
 
-    // Add + signs to positive numbers in tab lines
+    // Add + signs to positive numbers in tab lines (only if not already present)
     if (isTabLine) {
       processedContent = line.replace(
         /(\s|^)(\d+)(['"`'']?)/g,
