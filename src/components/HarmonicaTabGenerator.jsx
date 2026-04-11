@@ -44,14 +44,14 @@ const parseInput = (text) => {
 
     // Tab lines contain only numbers, spaces, +/- signs, and bend markers
     const isTabLine =
-      /^[\s\d\+\-'"`'']+$/.test(line.trim()) && line.trim().length > 0;
+      /^[\s\d+\-'"`'']+$/.test(line.trim()) && line.trim().length > 0;
 
     let processedContent = line;
 
     // Add + signs to positive numbers in tab lines (only if not already present)
     if (isTabLine) {
       processedContent = line.replace(
-        /(\s|^)(\d+)(['"`'']?)/g,
+        /(\s+|^)(\d+)(['"`'']?)/g,
         (match, space, number, bend) => space + "+" + number + bend,
       );
     }
@@ -461,6 +461,7 @@ const PreviewSection = ({
                       fontWeight="600"
                       fill="#3d5a6c"
                       letterSpacing="0.5"
+                      xmlSpace="preserve"
                     >
                       {line.content}
                     </text>
