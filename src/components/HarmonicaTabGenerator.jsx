@@ -35,7 +35,7 @@ const SVG_CONFIG = {
  * Adds + signs to positive numbers in tab lines (if not already present)
  * Preserves empty lines for spacing
  */
-const parseInput = (text) => {
+const parseInput = (text, addPlusSign = true) => {
   const lines = text.split("\n");
 
   return lines.map((line) => {
@@ -48,8 +48,8 @@ const parseInput = (text) => {
 
     let processedContent = line;
 
-    // Add + signs to positive numbers in tab lines (only if not already present)
-    if (isTabLine) {
+    // Add + signs to positive numbers in tab lines (only if enabled and not already present)
+    if (isTabLine && addPlusSign) {
       processedContent = line.replace(
         /(\s+|^)(\d+)(['"`'']?)/g,
         (match, space, number, bend) => space + "+" + number + bend,
@@ -152,6 +152,7 @@ const HarmonicaTabGenerator = () => {
   const [input, setInput] = useState(DEMO_TABS);
   const [title, setTitle] = useState("My Harmonica Tab");
   const [maxLinesPerColumn, setMaxLinesPerColumn] = useState(10);
+  const [addPlusSignToBlowNotes, setAddPlusSignToBlowNotes] = useState(false);
 
   // Ref for SVG element
   const svgRef = useRef(null);
@@ -160,7 +161,7 @@ const HarmonicaTabGenerator = () => {
   // COMPUTED VALUES
   // ============================================================================
 
-  const parsedLines = parseInput(input);
+  const parsedLines = parseInput(input, addPlusSignToBlowNotes);
   const columns = calculateLayout(parsedLines, maxLinesPerColumn);
   const columnWidths = columns.map(calculateColumnWidth);
   const { svgWidth, svgHeight } = calculateSVGDimensions(columns, columnWidths);
@@ -239,6 +240,8 @@ const HarmonicaTabGenerator = () => {
           setTitle={setTitle}
           maxLinesPerColumn={maxLinesPerColumn}
           setMaxLinesPerColumn={setMaxLinesPerColumn}
+          addPlusSignToBlowNotes={addPlusSignToBlowNotes}
+          setAddPlusSignToBlowNotes={setAddPlusSignToBlowNotes}
         />
 
         {/* Input */}
@@ -315,6 +318,8 @@ const SettingsSection = ({
   setTitle,
   maxLinesPerColumn,
   setMaxLinesPerColumn,
+  addPlusSignToBlowNotes,
+  setAddPlusSignToBlowNotes,
 }) => (
   <div className="card settings-card">
     <h2 className="section-title">⚙️ Settings</h2>
@@ -350,6 +355,35 @@ const SettingsSection = ({
           />
           <span className="slider-value">{maxLinesPerColumn}</span>
         </div>
+      </div>
+      <div className="setting-item">
+        <label className="setting-label">
+          Add + sign to blow notes?
+          <span className="setting-hint">
+            Prefix positive hole numbers with a + sign
+          </span>
+        </label>
+        <label className="toggle-label">
+          <span className="toggle-track-wrapper">
+            <input
+              type="checkbox"
+              className="toggle-input"
+              checked={addPlusSignToBlowNotes}
+              onChange={(e) => setAddPlusSignToBlowNotes(e.target.checked)}
+            />
+            <span
+              className={`toggle-track${addPlusSignToBlowNotes ? " is-on" : ""}`}
+            />
+            <span
+              className={`toggle-thumb${addPlusSignToBlowNotes ? " is-on" : ""}`}
+            />
+          </span>
+          <span
+            className={`toggle-status${addPlusSignToBlowNotes ? " is-on" : ""}`}
+          >
+            {addPlusSignToBlowNotes ? "On" : "Off"}
+          </span>
+        </label>
       </div>
     </div>
   </div>
