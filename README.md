@@ -54,3 +54,7 @@ The app will open in your browser at `http://localhost:5173`
 ## License
 
 MIT
+
+## Screenshot 
+
+<img src="./public/Screenshot-01.png" alt="Screenshot" style="max-width: aut; height: 50%;">
