@@ -42,16 +42,16 @@ const parseInput = (text, addPlusSign = true) => {
     // Check if line is empty
     const isEmpty = line.trim().length === 0;
 
-    // Tab lines contain only numbers, spaces, +/- signs, and bend markers
+    // Tab lines contain only numbers, spaces, +/- signs, bend markers or chromatic slide marker
     const isTabLine =
-      /^[\s\d+\-'"`'']+$/.test(line.trim()) && line.trim().length > 0;
+      /^[\s\d+\-'"`'*']+$/.test(line.trim()) && line.trim().length > 0;
 
     let processedContent = line;
 
     // Add + signs to positive numbers in tab lines (only if enabled and not already present)
     if (isTabLine && addPlusSign) {
       processedContent = line.replace(
-        /(\s+|^)(\d+)(['"`'']?)/g,
+        /(\s+|^)(\d+)(['"`'*']?)/g,
         (match, space, number, bend) => space + "+" + number + bend,
       );
     }
@@ -287,7 +287,7 @@ const InstructionsSection = () => (
         <span className="instruction-number">2</span>
         <div className="instruction-content">
           <strong>Auto-formatting</strong> - Positive numbers get a + sign
-          automatically. Bends: ' " ` ' (e.g., -3', 4")
+          automatically. Bends: ' " ` ' (e.g., -3', 4"). Chromatic slider: *
         </div>
       </li>
       <li className="instruction-item">
