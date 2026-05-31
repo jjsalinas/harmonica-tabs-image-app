@@ -20,12 +20,12 @@ cd harmonica-tabs-image-app
 
 2. Install dependencies:
 ```bash
-npm install
+pnpm install
 ```
 
 3. Start the development server:
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 The app will open in your browser at `http://localhost:5173`
