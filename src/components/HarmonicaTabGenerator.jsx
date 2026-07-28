@@ -293,7 +293,7 @@ const InstructionsSection = () => (
       <li className="instruction-item">
         <span className="instruction-number">2</span>
         <div className="instruction-content">
-          <strong>Auto-formatting</strong> - Positive numbers get a + sign
+          <strong>Auto-formatting</strong> - Positive numbers can get a + sign
           automatically. Bends: ' " ` ' (e.g., -3', 4"). Chromatic slider: *
         </div>
       </li>

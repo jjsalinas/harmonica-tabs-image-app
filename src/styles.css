@@ -105,7 +105,6 @@ body {
   box-shadow:
     0 12px 48px rgba(92, 74, 114, 0.12),
     0 4px 12px rgba(92, 74, 114, 0.06);
-  transform: translateY(-2px);
 }
 
 /* Card Variants */
@@ -158,7 +157,6 @@ body {
 .instruction-item:hover {
   background: rgba(255, 255, 255, 0.9);
   border-left-color: var(--soft-purple);
-  transform: translateX(4px);
 }
 
 .instruction-number {
