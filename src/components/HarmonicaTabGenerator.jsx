@@ -42,15 +42,22 @@ const parseInput = (text, addPlusSign = true) => {
     // Check if line is empty
     const isEmpty = line.trim().length === 0;
 
-    // Tab lines contain only numbers, spaces, +/- signs, bend markers or chromatic slide marker
+    // Tab lines contain only numbers, spaces, +/- signs, parenthesis, bend markers or chromatic slide marker
     const isTabLine =
-      /^[\s\d+\-'"`'*']+$/.test(line.trim()) && line.trim().length > 0;
+      /^[\s\d+\-'"\(\)`'*']+$/.test(line.trim()) && line.trim().length > 0;
 
     let processedContent = line;
 
+    // Convert digits between parenthesis to minus digits
+    if (isTabLine) {
+      processedContent = line.replace(/(\(\d\)*)/g, (match) =>
+        match.replace("(", "-").replace(")", ""),
+      );
+    }
+
     // Add + signs to positive numbers in tab lines (only if enabled and not already present)
     if (isTabLine && addPlusSign) {
-      processedContent = line.replace(
+      processedContent = processedContent.replace(
         /(\s+|^)(\d+)(['"`'*']?)/g,
         (match, space, number, bend) => space + "+" + number + bend,
       );
